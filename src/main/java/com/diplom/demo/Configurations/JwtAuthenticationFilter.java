@@ -7,8 +7,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,8 +20,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtService jwtService;  // Сервис для работы с JWT
@@ -51,12 +56,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Загружаем пользователя с помощью UserDetailsService
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
+            // Извлекаем роль из токена и добавляем в authorities
+            String role = jwtService.extractClaim(jwt, claims -> claims.get("role", String.class));
+            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+            log.info("Роль пользователя " + role);
             // Проверяем валидность токена
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 // Если токен валидный, создаём объект аутентификации
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities()
+                                userDetails, null, authorities
                         );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 

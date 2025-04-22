@@ -5,6 +5,8 @@ public enum Category {
     SALAD,
     MAIN_DISH,
     DESSERT,
-    DRINK
+    DRINK,
+    Pizza,
+    Pasta
 }
 

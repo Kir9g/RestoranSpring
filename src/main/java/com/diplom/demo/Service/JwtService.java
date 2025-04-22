@@ -5,6 +5,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +19,18 @@ import java.util.Date;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JwtService {
 
-    private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    @Value("${jwt.secret}")
+    private String secretString;
+
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
+    };
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -28,20 +40,21 @@ public class JwtService {
         Claims claims = Jwts.parser()
                 .verifyWith(getSignKey())  // вместо setSigningKey
                 .build()
-                .parseSignedClaims(token)  // вместо parseClaimsJws
-                .getPayload();             // вместо getBody
+                .parseSignedClaims(token)
+                .getPayload();
         return claimsResolver.apply(claims);
     }
 
     public String generateToken(UserDetails userDetails) {
         User user = (User) userDetails;
+        log.info("Имя и роль пользователя" +userDetails.getUsername(),user.getRole().name());
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("role", user.getRole().name())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10h
-                .signWith(getSignKey())  // без указания алгоритма (автовыбор)
+                .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -58,7 +71,7 @@ public class JwtService {
     }
 
     private SecretKey getSignKey() {
-        return SECRET_KEY;
+        return secretKey;
     }
 
 }

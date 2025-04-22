@@ -11,6 +11,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.regex.Pattern;
+
 @Service
 public class AuthenticationService {
     @Autowired
@@ -29,8 +31,24 @@ public class AuthenticationService {
         User user = new User();
         user.setUsername(registerRequestDTO.getUsername());
 
+        //Заполнение зашифрованного пароля
         user.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
         user.setRole(UserRole.CLIENT);
+
+
+        if (registerRequestDTO.getEmail() != null && !registerRequestDTO.getEmail().isEmpty()) {
+            user.setEmail(registerRequestDTO.getEmail());
+        } else {
+            user.setEmail(""); // или null, или любое значение по умолчанию
+        }
+
+        if (registerRequestDTO.getFullName() != null && !registerRequestDTO.getFullName().isEmpty()) {
+            user.setFullName(registerRequestDTO.getFullName());
+        }
+
+        if (registerRequestDTO.getPhone() != null && !registerRequestDTO.getPhone().isEmpty()) {
+            user.setPhone(registerRequestDTO.getPhone());
+        }
         userRepository.save(user);
         return jwtService.generateToken(user);
     }
@@ -43,5 +61,9 @@ public class AuthenticationService {
         return jwtService.generateToken(user);
     }
 
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        return Pattern.matches(emailRegex, email);
+    }
 }
 

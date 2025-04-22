@@ -29,5 +29,7 @@ public class AuthenticationController {
     public ResponseEntity<String> login(@RequestBody AuthRequstDTO request) {
         return ResponseEntity.ok(authService.authenticate(request.getUsername(), request.getPassword()));
     }
+
+
 }
 
