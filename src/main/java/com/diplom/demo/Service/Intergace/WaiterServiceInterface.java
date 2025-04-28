@@ -11,4 +11,3 @@ public interface WaiterServiceInterface {
     List<OrderDTO> getAllOrders(); // все заказы
     OrderDTO updateOrderStatus(Long orderId, String status); // обновить статус заказа (выдан)
 }
-}
