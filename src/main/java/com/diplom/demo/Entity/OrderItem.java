@@ -21,5 +21,9 @@ public class OrderItem {
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "menu_item_id")
+    private MenuItem menuItem; // Ссылка на оригинальный пункт меню
 }
 

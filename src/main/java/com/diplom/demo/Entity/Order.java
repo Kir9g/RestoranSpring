@@ -26,6 +26,10 @@ public class Order {
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id") // Добавляем прямую ссылку на пользователя
+    private User user;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
 }

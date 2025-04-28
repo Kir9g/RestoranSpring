@@ -17,10 +17,14 @@ public class Reservation {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private boolean isExtended; // продляли или нет
+
     private String status; // "ACTIVE", "CANCELLED", "COMPLETED"
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     @ManyToOne

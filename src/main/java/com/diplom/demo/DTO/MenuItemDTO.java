@@ -22,11 +22,10 @@ public class MenuItemDTO {
     private BigDecimal price;
     private String imageUrl; // ссылка на изображение
 
-    @Enumerated(EnumType.STRING)
     private Category category; // например, SOUP, MAIN_DISH, DRINK
 
     private Long restaurant;
 
-    private boolean available = true;
+    private boolean available;
 
 }

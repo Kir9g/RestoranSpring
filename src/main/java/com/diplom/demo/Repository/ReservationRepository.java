@@ -1,6 +1,7 @@
 package com.diplom.demo.Repository;
 
 import com.diplom.demo.Entity.Reservation;
+import com.diplom.demo.Entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,6 +28,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    Optional<Reservation> findByUser(User user);
+    Optional<Reservation> findByIdAndUser(Long id, User user);
+
+    List<Reservation> findByStatus(String status);
 }
 
 

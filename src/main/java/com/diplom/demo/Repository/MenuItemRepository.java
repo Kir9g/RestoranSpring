@@ -16,4 +16,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     @Transactional
     @Query("UPDATE MenuItem m SET m.available = :available WHERE m.id = :id")
     void updateAvailabilityById(Long id, boolean available);
+
+    // Найти все доступные блюда (available = true)
+    List<MenuItem> findByAvailableTrue();
 }
