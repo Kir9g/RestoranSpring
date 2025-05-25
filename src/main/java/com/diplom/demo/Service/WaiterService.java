@@ -145,20 +145,8 @@ public class WaiterService implements WaiterServiceInterface {
 
         paymentRepository.save(payment);
 
-        if (order.getReservation() != null) {
-            TableEntity table = order.getReservation().getTable();
-            if (table.isManuallyOccupied()) {
-                table.setManuallyOccupied(false);
-                tableRepository.save(table);
-            }
-        }
 
         return PaymentDTO.fromPayment(payment);
-    }
-    public void freeTable(Long tableId) {
-        TableEntity table = tableRepository.findById(tableId).orElseThrow();
-        table.setManuallyOccupied(false);
-        tableRepository.save(table);
     }
 
     @Transactional
@@ -166,9 +154,6 @@ public class WaiterService implements WaiterServiceInterface {
         TableEntity table = tableRepository.findById(request.getTableId())
                 .orElseThrow(() -> new RuntimeException("Стол не найден"));
 
-        if (!table.isManuallyOccupied()) {
-            throw new IllegalStateException("Стол не занят вручную");
-        }
         Reservation reservation = new Reservation();
         reservation.setTable(table);
         reservation.setStartTime(LocalDateTime.now());

@@ -107,7 +107,7 @@ public class GuestService implements GuestServiceInterface {
                                 !reservation.getEndTime().isBefore(selectedTime) &&
                                 !reservation.getStartTime().isAfter(selectedTime)
                 );
-        return !hasActiveReservation && !table.isManuallyOccupied();
+        return !hasActiveReservation;
     }
 
 

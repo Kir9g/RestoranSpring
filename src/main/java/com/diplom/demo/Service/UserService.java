@@ -131,9 +131,6 @@ public class UserService implements UserServiceInterface {
         TableEntity table = tableEntityRepository.findById(reservationDTO.getTableId())
                 .orElseThrow(() -> new RuntimeException("Table not found"));
 
-        if (table.isManuallyOccupied()){
-            throw new RuntimeException("Стол занят");
-        }
 
         Reservation reservation = new Reservation();
         reservation.setStartTime(reservationDTO.getStartTime());
