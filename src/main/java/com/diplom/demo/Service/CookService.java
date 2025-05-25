@@ -7,18 +7,32 @@ import com.diplom.demo.Enums.OrderStatus;
 import com.diplom.demo.Repository.OrderRepository;
 import com.diplom.demo.Service.Intergace.CookServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-
+@Service
 public class CookService implements CookServiceInterface {
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+    private LocalDateTime now;
 
     @Override
     public List<OrderDTO> getActiveOrders() {
-        List<Order> orders = orderRepository.findByStatusIn(
-                List.of(OrderStatus.CREATED,
-                        OrderStatus.IN_PROGRESS));
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        LocalDateTime allowedTime = now.plusHours(1);
+
+        List<Order> orders = orderRepository.findActiveOrdersWithinTime(
+                List.of(OrderStatus.CREATED, OrderStatus.IN_PROGRESS),
+                startOfDay,
+                endOfDay,
+                allowedTime
+        );
         return orders.stream().map(
                 order -> new OrderDTO(
                         order.getId(),
@@ -26,7 +40,11 @@ public class CookService implements CookServiceInterface {
                         order.getStatus(),
                         order.getReservation() != null ? order.getReservation().getId() : null,
                         order.getItems().stream()
-                                .map(item -> new OrderItemDTO(item.getId(), item.getDishName(), item.getQuantity(), item.getPrice()))
+                                .map(item -> new OrderItemDTO(item.getId(),
+                                        item.getComment(),
+                                        item.getDishName(),
+                                        item.getQuantity(),
+                                        item.getPrice()))
                                 .toList()
                 )
         ).toList();
@@ -40,7 +58,11 @@ public class CookService implements CookServiceInterface {
             throw new RuntimeException("Order cannot be accepted");
         }
         order.setStatus(OrderStatus.IN_PROGRESS);
+
         orderRepository.save(order);
+
+        messagingTemplate.convertAndSend("/topic/cooks", convertToDTO(order));
+
     }
 
     @Override
@@ -52,5 +74,25 @@ public class CookService implements CookServiceInterface {
         }
         order.setStatus(OrderStatus.READY);
         orderRepository.save(order);
+
+        // Уведомление официанту
+        messagingTemplate.convertAndSend("/topic/waiters", convertToDTO(order));
+    }
+
+    private OrderDTO convertToDTO(Order order) {
+        return new OrderDTO(
+                order.getId(),
+                order.getCreatedAt(),
+                order.getStatus(),
+                order.getReservation() != null ? order.getReservation().getId() : null,
+                order.getItems().stream()
+                        .map(item -> new OrderItemDTO(
+                                item.getId(),
+                                item.getComment(),
+                                item.getDishName(),
+                                item.getQuantity(),
+                                item.getPrice()))
+                        .toList()
+        );
     }
 }

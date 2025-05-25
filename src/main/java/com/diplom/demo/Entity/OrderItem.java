@@ -17,6 +17,7 @@ public class OrderItem {
     private String dishName;
     private int quantity;
     private BigDecimal price;
+    private String comment;
 
     @ManyToOne
     @JoinColumn(name = "order_id")

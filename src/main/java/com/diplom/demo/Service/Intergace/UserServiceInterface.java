@@ -1,9 +1,6 @@
 package com.diplom.demo.Service.Intergace;
 
-import com.diplom.demo.DTO.MenuItemDTO;
-import com.diplom.demo.DTO.OrderDTO;
-import com.diplom.demo.DTO.ReservationDTO;
-import com.diplom.demo.DTO.UserDTO;
+import com.diplom.demo.DTO.*;
 import com.diplom.demo.Entity.User;
 import com.diplom.demo.Service.CustomUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,4 +16,6 @@ public interface UserServiceInterface {
     ReservationDTO createReservation(User user, ReservationDTO reservationDTO);
     List<ReservationDTO> getMyReservations(User user);
     void cancelReservation(User user, Long id);
+    List<ReservationDTOLIST> getMyPastReservations(User user);
+    List<ReservationDTOLIST> getMyActiveReservations(User user);
 }

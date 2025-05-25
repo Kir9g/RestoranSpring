@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/cook")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('CLIENT')")
+@PreAuthorize("hasRole('COOK')")
 public class CookController {
 
     private final CookService cookService;

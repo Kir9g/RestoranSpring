@@ -19,4 +19,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     // Найти все доступные блюда (available = true)
     List<MenuItem> findByAvailableTrue();
+
+    List<MenuItem> findByCategory_NameIgnoreCaseAndAvailableTrue(String categoryName);
+
 }

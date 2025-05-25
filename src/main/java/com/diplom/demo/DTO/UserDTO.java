@@ -9,6 +9,7 @@ public class UserDTO {
 
     private Long id;
     private String fullName;
+    private String SecondName;
     private String phone;
     private String email;
     private UserRole role;

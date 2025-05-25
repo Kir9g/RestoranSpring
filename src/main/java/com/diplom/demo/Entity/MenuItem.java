@@ -20,8 +20,9 @@ public class MenuItem {
     private BigDecimal price;
     private String imageUrl; // ссылка на изображение
 
-    @Enumerated(EnumType.STRING)
-    private Category category; // например, SOUP, MAIN_DISH, DRINK
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private CategoryEntity category;
 
     @ManyToOne
     @JoinColumn(name = "restaurant_id")

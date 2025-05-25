@@ -1,21 +1,16 @@
 package com.diplom.demo.Service;
 
-import com.diplom.demo.DTO.MenuItemDTO;
-import com.diplom.demo.DTO.RestaurantDTO;
-import com.diplom.demo.DTO.RoomDTO;
-import com.diplom.demo.DTO.TableDTO;
+import com.diplom.demo.DTO.*;
 import com.diplom.demo.Entity.MenuItem;
 import com.diplom.demo.Entity.Restaurant;
 import com.diplom.demo.Entity.Room;
 import com.diplom.demo.Entity.TableEntity;
-import com.diplom.demo.Repository.MenuItemRepository;
-import com.diplom.demo.Repository.RestaurantRepository;
-import com.diplom.demo.Repository.RoomRepository;
-import com.diplom.demo.Repository.TableEntityRepository;
+import com.diplom.demo.Repository.*;
 import com.diplom.demo.Service.Intergace.GuestServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +25,8 @@ public class GuestService implements GuestServiceInterface {
     private RestaurantRepository restaurantRepository;
     @Autowired
     private TableEntityRepository tableRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Override
     public List<MenuItemDTO> getAllAvailableMenuItems() {
@@ -41,13 +38,28 @@ public class GuestService implements GuestServiceInterface {
                         item.getDescription(),
                         item.getPrice(),
                         item.getImageUrl(),
-                        item.getCategory(),
+                        item.getCategory().getName(),
                         item.getRestaurant() != null ? item.getRestaurant().getId() : null,
                         item.isAvailable()
                 ))
                 .collect(Collectors.toList());
     }
 
+    public List<MenuItemDTO> getAvailableMenuItemsByCategory(String categoryName) {
+        List<MenuItem> items = menuItemRepository.findByCategory_NameIgnoreCaseAndAvailableTrue(categoryName);
+        return items.stream()
+                .map(item -> new MenuItemDTO(
+                        item.getId(),
+                        item.getName(),
+                        item.getDescription(),
+                        item.getPrice(),
+                        item.getImageUrl(),
+                        item.getCategory().getName(),
+                        item.getRestaurant() != null ? item.getRestaurant().getId() : null,
+                        item.isAvailable()
+                ))
+                .collect(Collectors.toList());
+    }
     @Override
     public List<RoomDTO> getAllRooms() {
         List<Room> rooms = roomRepository.findAll();
@@ -55,8 +67,7 @@ public class GuestService implements GuestServiceInterface {
                 .map(room -> new RoomDTO(
                         room.getId(),
                         room.getName(),
-                        room.getRows(),
-                        room.getCols()
+                        room.getRestaurant().getId()
                 ))
                 .collect(Collectors.toList());
     }
@@ -74,25 +85,31 @@ public class GuestService implements GuestServiceInterface {
                 restaurant.getDescription()
         );
     }
-
     @Override
-    public List<TableDTO> getAllTables() {
+    public List<TableDTO> getTablesAtTime(LocalDateTime selectedTime) {
         List<TableEntity> tables = tableRepository.findAll();
         return tables.stream()
                 .map(table -> new TableDTO(
                         table.getId(),
                         table.getLabel(),
-                        table.getRowPosition(),
-                        table.getColPosition(),
+                        table.getDescription(),
+                        table.getStringUrl(),
                         table.getSeats(),
-                        isTableAvailable(table) // логика для определения доступности
+                        isTableAvailableAtTime(table, selectedTime)
                 ))
                 .collect(Collectors.toList());
     }
 
-    private boolean isTableAvailable(TableEntity table) {
-        return table.getReservations().stream()
-                .noneMatch(reservation -> reservation.getStatus().equals("ACTIVE"));
+    private boolean isTableAvailableAtTime(TableEntity table, LocalDateTime selectedTime) {
+        boolean hasActiveReservation = table.getReservations().stream()
+                .anyMatch(reservation ->
+                        reservation.getStatus().equalsIgnoreCase("ACTIVE") &&
+                                !reservation.getEndTime().isBefore(selectedTime) &&
+                                !reservation.getStartTime().isAfter(selectedTime)
+                );
+        return !hasActiveReservation && !table.isManuallyOccupied();
     }
+
+
 
 }

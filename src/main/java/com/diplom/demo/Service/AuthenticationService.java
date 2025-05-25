@@ -5,15 +5,18 @@ import com.diplom.demo.Entity.User;
 import com.diplom.demo.Enums.UserRole;
 import com.diplom.demo.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.regex.Pattern;
 
 @Service
+@Slf4j
 public class AuthenticationService {
     @Autowired
     private UserRepository userRepository;
@@ -24,11 +27,13 @@ public class AuthenticationService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Transactional
     public String register(RegisterRequestDTO registerRequestDTO) {
         if (userRepository.findByUsername(registerRequestDTO.getUsername()).isPresent()){
             throw new RuntimeException("Пользователь уже существует");
         }
         User user = new User();
+
         user.setUsername(registerRequestDTO.getUsername());
 
         //Заполнение зашифрованного пароля
@@ -52,7 +57,7 @@ public class AuthenticationService {
         userRepository.save(user);
         return jwtService.generateToken(user);
     }
-
+    @Transactional
     public String authenticate(String username, String password) {
         var authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)

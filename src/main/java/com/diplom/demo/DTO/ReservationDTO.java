@@ -1,21 +1,21 @@
 package com.diplom.demo.DTO;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
 public class ReservationDTO {
     private Long id;
-    private Long userId;
-    private Long tableId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String status;
-    private boolean extended;
+    private Long tableId;
+    private String tableLabel;
+    private String roomName;
+    private boolean canBeCancelled; // вычисляемое поле
 }
-

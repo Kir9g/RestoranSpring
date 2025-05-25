@@ -6,7 +6,7 @@ public enum Category {
     MAIN_DISH,
     DESSERT,
     DRINK,
-    Pizza,
-    Pasta
+    PIZZA,
+    PASTA
 }
 

@@ -6,6 +6,7 @@ import com.diplom.demo.Entity.User;
 import com.diplom.demo.Service.AuthenticationService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
+@Slf4j
 public class AuthenticationController {
 
     @Autowired
@@ -22,6 +24,7 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequestDTO registerRequestDTO) {
+        log.info("Регистрация пользователя: {}", registerRequestDTO);
         return ResponseEntity.ok(authService.register(registerRequestDTO));
     }
 

@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 public class RoomDTO {
     private Long id;
     private String name;
-    private int rows;
-    private int cols;
+    private Long restaurantId; // ID ресторана, к которому относится комната
 }
 

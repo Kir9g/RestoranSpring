@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -18,10 +19,11 @@ public class Reservation {
     private LocalDateTime endTime;
     private boolean isExtended; // продляли или нет
 
-    private String status; // "ACTIVE", "CANCELLED", "COMPLETED"
+    private String status; // "ACTIVE", "CANCELLED", "COMPLETED", ""
 
-    @ManyToOne
-    private Order order;
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
+    private List<Order> orders;
+
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
@@ -30,5 +32,10 @@ public class Reservation {
     @ManyToOne
     @JoinColumn(name = "table_id")
     private TableEntity table;
+
+    public void addOrder(Order order) {
+        orders.add(order);
+        order.setReservation(this);
+    }
 }
 

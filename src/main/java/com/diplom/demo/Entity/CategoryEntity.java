@@ -4,23 +4,16 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Entity
+@Table(name = "category")
 @Getter
 @Setter
-public class Room {
+public class CategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "restaurant_id")
-    private Restaurant restaurant;
-
-    @OneToMany(mappedBy = "room")
-    private List<TableEntity> tables;
+    private String imageUrl;
 }
-

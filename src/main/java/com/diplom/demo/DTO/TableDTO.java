@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 public class TableDTO {
     private Long id;
     private String label;
-    private int rowPosition;
-    private int colPosition;
+    private String description;
+    private String StringUrl;
     private int seats;
     private boolean available; // свободен ли столик
 }

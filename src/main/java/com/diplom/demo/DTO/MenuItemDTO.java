@@ -22,7 +22,7 @@ public class MenuItemDTO {
     private BigDecimal price;
     private String imageUrl; // ссылка на изображение
 
-    private Category category; // например, SOUP, MAIN_DISH, DRINK
+    private String category; // например, SOUP, MAIN_DISH, DRINK
 
     private Long restaurant;
 
