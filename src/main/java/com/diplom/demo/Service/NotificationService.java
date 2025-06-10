@@ -1,5 +1,6 @@
 package com.diplom.demo.Service;
 
+import com.diplom.demo.DTO.OrderDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,10 @@ public class NotificationService {
     }
 
     public void notifyCooks(String message) {
-        messagingTemplate.convertAndSend("/topic/cook-alerts", message);
+        messagingTemplate.convertAndSend("/topic/cooks", message);
+    }
+
+    public void notifyCooks(OrderDTO orderDTO) {
+        messagingTemplate.convertAndSend("/topic/cooks", orderDTO);
     }
 }

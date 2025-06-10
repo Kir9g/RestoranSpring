@@ -40,9 +40,8 @@ public class GuestController {
     }
 
     @GetMapping("/tables")
-    public List<TableDTO> getTablesAtTime(@RequestParam String time) {
-        LocalTime localTime = LocalTime.parse(time);
-        LocalDateTime selectedDateTime = LocalDateTime.of(LocalDate.now(), localTime);
+    public List<TableDTO> getTablesAtTime(@RequestParam("datetime") String datetimeStr) {
+        LocalDateTime selectedDateTime = LocalDateTime.parse(datetimeStr);
         return guestService.getTablesAtTime(selectedDateTime);
     }
 
@@ -51,6 +50,4 @@ public class GuestController {
     public List<MenuItemDTO> getAvailableMenuItems() {
         return guestService.getAllAvailableMenuItems();
     }
-
-
 }

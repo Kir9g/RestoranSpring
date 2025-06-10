@@ -18,6 +18,7 @@ public class Reservation {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private boolean isExtended; // продляли или нет
+    private LocalDateTime createdTime;
 
     private String status; // "ACTIVE", "CANCELLED", "COMPLETED", ""
 

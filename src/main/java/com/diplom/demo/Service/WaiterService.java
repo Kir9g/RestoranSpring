@@ -74,6 +74,11 @@ public class WaiterService implements WaiterServiceInterface {
     public List<OrderDTO> getAllOrders() {
         return orderRepository.findAll()
                 .stream()
+                .filter(order ->
+                        order.getStatus() != OrderStatus.CREATED  &&
+                                order.getStatus() != OrderStatus.IN_PROGRESS &&
+                                !paymentRepository.existsByOrderId(order.getId())
+                )
                 .map(order -> new OrderDTO(
                         order.getId(),
                         order.getCreatedAt(),

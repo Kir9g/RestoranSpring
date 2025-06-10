@@ -44,7 +44,51 @@ public class AdminService {
     @Autowired
     private RestaurantRepository restaurantRepository;
     private final Path imageUploadPath = Paths.get("uploads/Menu");
+    private final Path tableImageUploadPath = Paths.get("uploads/Tables");
 
+
+
+    // --- Управление персоналом ---
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findByRoleNot(UserRole.CLIENT)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+    public void createUser(UserDTO dto) {
+        User user = new User();
+        mapToEntity(dto, user);
+        userRepository.save(user);
+    }
+
+    public void updateUser(Long id, UserDTO dto) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        mapToEntity(dto, user);
+        userRepository.save(user);
+    }
+
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    private UserDTO mapToDTO(User user) {
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setFullName(user.getFullName());
+        dto.setSecondName(user.getSecondName());
+        dto.setPhone(user.getPhone());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole());
+        return dto;
+    }
+
+    private void mapToEntity(UserDTO dto, User user) {
+        user.setFullName(dto.getFullName());
+        user.setSecondName(dto.getSecondName());
+        user.setPhone(dto.getPhone());
+        user.setEmail(dto.getEmail());
+        user.setRole(UserRole.valueOf(dto.getRole().name()));
+    }
 
 
     // --- Управление меню ---
@@ -364,7 +408,6 @@ public class AdminService {
     }
 
 
-    //Новый код
     // ===== Комнаты =====
     public List<Room> getAllRooms() {
         return roomRepository.findAll();
@@ -375,8 +418,17 @@ public class AdminService {
     }
 
     public Room addRoom(RoomDTO roomDTO) {
-        Restaurant restaurant = restaurantRepository.findById(roomDTO.getRestaurantId())
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
+        Restaurant restaurant;
+        if (roomDTO.getRestaurantId() != null) {
+            restaurant = restaurantRepository.findById(roomDTO.getRestaurantId())
+                    .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+        }else {
+            restaurant = restaurantRepository.findAll()
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("No restaurants found"));
+        }
 
         Room room = new Room();
         room.setName(roomDTO.getName());
@@ -411,35 +463,38 @@ public class AdminService {
         return tableEntityRepository.findById(id).orElseThrow(() -> new RuntimeException("Table not found"));
     }
 
-    public TableEntity addTable(TableAdminDTO tableDTO) {
-        Room room = roomRepository.findById(tableDTO.getRoomId())
-                .orElseThrow(() -> new RuntimeException("Room not found"));
-
+    public TableEntity addTable(String label, String description, int seats, Long roomId, MultipartFile image) throws IOException {
         TableEntity table = new TableEntity();
-        table.setLabel(tableDTO.getLabel());
-        table.setDescription(tableDTO.getDescription());
-        table.setStringUrl(tableDTO.getImageUrl());
-        table.setSeats(tableDTO.getSeats());
-        table.setRoom(room);
+        table.setLabel(label);
+        table.setDescription(description);
+        table.setSeats(seats);
+        table.setRoom(roomRepository.findById(roomId).orElseThrow());
 
-        return tableEntityRepository.save(table);
-    }
-
-    public TableEntity updateTable(Long id, TableAdminDTO tableDTO) {
-        TableEntity table = tableEntityRepository.findById(id).orElseThrow(() -> new RuntimeException("Table not found"));
-        table.setLabel(tableDTO.getLabel());
-        table.setDescription(tableDTO.getDescription());
-        table.setStringUrl(tableDTO.getImageUrl());
-        table.setSeats(tableDTO.getSeats());
-
-        if (tableDTO.getRoomId() != null) {
-            Room room = roomRepository.findById(tableDTO.getRoomId())
-                    .orElseThrow(() -> new RuntimeException("Room not found"));
-            table.setRoom(room);
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = saveTableImage(image);
+            table.setStringUrl(imageUrl);
         }
 
         return tableEntityRepository.save(table);
     }
+
+    public TableEntity updateTable(Long id, String label, String description, int seats, Long roomId, MultipartFile image) throws IOException {
+        TableEntity table = tableEntityRepository.findById(id).orElseThrow();
+        table.setLabel(label);
+        table.setDescription(description);
+        table.setSeats(seats);
+        table.setRoom(roomRepository.findById(roomId).orElseThrow());
+
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = saveTableImage(image);
+            table.setStringUrl(imageUrl);
+        }
+
+        return tableEntityRepository.save(table);
+    }
+
+
+
 
     public void deleteTable(Long id) {
         tableEntityRepository.deleteById(id);
@@ -455,5 +510,19 @@ public class AdminService {
         Files.copy(image.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
         return "/uploads/Menu/" + fileName;
     }
+    private String saveTableImage(MultipartFile image) throws IOException {
+
+        if (Files.notExists(tableImageUploadPath)) {
+            Files.createDirectories(tableImageUploadPath);
+        }
+
+        String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+        Path targetPath = tableImageUploadPath.resolve(fileName);
+        Files.copy(image.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+        return "/uploads/Tables/" + fileName;
+    }
+
+
+
 }
 

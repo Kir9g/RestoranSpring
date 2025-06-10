@@ -91,10 +91,11 @@ public class UserService implements UserServiceInterface {
         order.setCreatedAt(LocalDateTime.now());
         order.setStatus(OrderStatus.CREATED);
         order.setUser(user);
+        Reservation reservation = null;
 
         // Устанавливаем бронирование, если указано
         if (orderDTO.getReservationId() != null) {
-            Reservation reservation = reservationRepository.findById(orderDTO.getReservationId())
+            reservation = reservationRepository.findById(orderDTO.getReservationId())
                     .orElseThrow(() -> new RuntimeException("Reservation not found"));
             order.setReservation(reservation);
             reservation.addOrder(order);
@@ -112,9 +113,18 @@ public class UserService implements UserServiceInterface {
 
             savedOrder.setItems(orderItems);
             orderRepository.save(savedOrder); // Сохраняем с элементами
+
         }
 
-        return convertToOrderDTO(savedOrder);
+        OrderDTO orderDTO1 = convertToOrderDTO(savedOrder);
+
+        if (reservation.getStatus().equals("ACTIVE")) {
+            // Уведомляем повара
+            System.out.println("🔔 Отправка уведомления повару по заказу ID: " + orderDTO.getId());
+            notificationService.notifyCooks(orderDTO1);
+        }
+
+        return  orderDTO1;
     }
 
 
@@ -142,6 +152,8 @@ public class UserService implements UserServiceInterface {
         Reservation savedReservation = reservationRepository.save(reservation);
         return convertToReservationDTO(savedReservation);
     }
+
+
 
     @Override
     public List<ReservationDTO> getMyReservations(User user) {

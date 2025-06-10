@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 public class RegisterRequestDTO {
     private String fullName;
     private String phone;
+    @NotBlank(message = "email is required")
     private String email;
     @NotBlank(message = "Username is required")
     private String username;

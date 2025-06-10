@@ -20,7 +20,7 @@ public class CookNotificationScheduler {
     private final OrderRepository orderRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @Scheduled(fixedRate = 60000) // запускать каждую минуту
+    @Scheduled(fixedRate = 600000) // запускать каждые 10 минут
     public void notifyOrdersStartingSoon() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime from = now.plusMinutes(29);

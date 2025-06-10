@@ -26,10 +26,11 @@ public class User implements UserDetails {
     private String secondName;
     @Column(nullable = true)
     private String phone;
-    @Column(nullable = true)
+    @Column(nullable = false)
     private String email;
-
+    @Column(name = "username", unique = true, nullable = false)
     private String username;
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -37,6 +38,7 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user")
     private List<Reservation> reservations;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

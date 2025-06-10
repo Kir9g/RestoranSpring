@@ -74,6 +74,21 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT r FROM Reservation r WHERE r.user = :user AND (r.endTime < :now OR r.status IN ('COMPLETED', 'CANCELLED'))")
     List<Reservation> findPastReservations(@Param("user") User user, @Param("now") LocalDateTime now);
 
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END " +
+            "FROM Reservation r WHERE r.table.id = :tableId " +
+            "AND r.status IN ('ACTIVE', 'PENDING') " +
+            "AND r.startTime < :endTime AND r.endTime > :startTime")
+    boolean existsByTableIdAndTimeOverlap(
+            @Param("tableId") Long tableId,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime
+    );
+
+
+    Optional<Reservation> findByUserAndTableIdAndStatus(User user, Long tableId, String status);
+
+    List<Reservation> findAllByStatusAndCreatedTimeBefore(String status, LocalDateTime time);
+
 }
 
 

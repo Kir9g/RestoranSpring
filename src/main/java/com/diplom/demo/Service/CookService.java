@@ -19,10 +19,10 @@ public class CookService implements CookServiceInterface {
     private OrderRepository orderRepository;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
-    private LocalDateTime now;
 
     @Override
     public List<OrderDTO> getActiveOrders() {
+        LocalDateTime now = LocalDateTime.now();
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
         LocalDateTime allowedTime = now.plusHours(1);
@@ -63,6 +63,7 @@ public class CookService implements CookServiceInterface {
 
         messagingTemplate.convertAndSend("/topic/cooks", convertToDTO(order));
 
+
     }
 
     @Override
@@ -77,6 +78,8 @@ public class CookService implements CookServiceInterface {
 
         // Уведомление официанту
         messagingTemplate.convertAndSend("/topic/waiters", convertToDTO(order));
+
+        messagingTemplate.convertAndSend("/topic/cooks/delete", order.getId());
     }
 
     private OrderDTO convertToDTO(Order order) {

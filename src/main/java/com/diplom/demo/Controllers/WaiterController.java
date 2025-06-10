@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/Waiter")
+@RequestMapping("/api/Waiter")
 @PreAuthorize("hasRole('WAITER')")
 public class WaiterController {
     @Autowired
@@ -48,11 +48,6 @@ public class WaiterController {
         return waiterService.confirmPayment(orderId, method);
     }
 
-    @PostMapping("/tables/{id}/free")
-    public ResponseEntity<?> freeTable(@PathVariable Long id) {
-        waiterService.freeTable(id);
-        return ResponseEntity.ok().build();
-    }
 
     @PostMapping("/manual-order")
     public OrderDTO createManualOrderWithItems(@RequestBody CreateOrderRequest request,

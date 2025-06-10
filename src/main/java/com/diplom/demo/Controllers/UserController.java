@@ -3,8 +3,11 @@ package com.diplom.demo.Controllers;
 import com.diplom.demo.DTO.*;
 import com.diplom.demo.Entity.User;
 import com.diplom.demo.Enums.Category;
+import com.diplom.demo.Service.ResetCodeData;
 import com.diplom.demo.Service.UserService;
+import com.diplom.demo.Service.VerificationCodeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,33 +20,30 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('CLIENT')")
 public class UserController {
-
-    private final UserService userService;
-
+    @Autowired
+    private  UserService userService;
+    @Autowired
+    private VerificationCodeService verificationCodeService;
     // Получить информацию о себе
     @GetMapping("/profile")
     public ResponseEntity<UserDTO> getProfile(@AuthenticationPrincipal User userDetails) {
         return ResponseEntity.ok(userService.getUserProfile(userDetails));
     }
-
     // Обновить профиль
     @PutMapping("/profile")
     public ResponseEntity<UserDTO> updateProfile(@AuthenticationPrincipal User userDetails, @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.updateUserProfile(userDetails, userDTO));
     }
-
     // Получить меню
     @GetMapping("/menu")
     public ResponseEntity<List<MenuItemDTO>> getMenu() {
         return ResponseEntity.ok(userService.getAllMenuItems());
     }
-
     // Создать заказ
     @PostMapping("/orders")
     public ResponseEntity<OrderDTO> createOrder(@AuthenticationPrincipal User user, @RequestBody OrderDTO orderDTO) {
         return ResponseEntity.ok(userService.createOrder(user, orderDTO));
     }
-
     // Получить свои заказы
     @GetMapping("/orders/mine")
     public ResponseEntity<List<OrderDTO>> getMyOrders(@AuthenticationPrincipal User userDetails) {
@@ -52,9 +52,18 @@ public class UserController {
 
     // Создать бронирование
     @PostMapping("/reservations")
-    public ResponseEntity<ReservationDTO> createReservation(@AuthenticationPrincipal User userDetails, @RequestBody ReservationDTO reservationDTO) {
-        return ResponseEntity.ok(userService.createReservation(userDetails, reservationDTO));
+    public ResponseEntity<?> createReservation(@AuthenticationPrincipal User userDetails
+            , @RequestBody ReservationCodeDTO reservationDTO) {
+        verificationCodeService.verifyAndActivateReservation(userDetails, reservationDTO);
+        return ResponseEntity.ok().build();
     }
+    @PostMapping("/reservations/send-code")
+    public ResponseEntity<?> sendVerificationCode(@AuthenticationPrincipal User user,
+                                                  @RequestBody ReservationCodeDTO dto ) {
+        verificationCodeService.generateAndSendCode(user,dto);
+        return ResponseEntity.ok().build();
+    }
+
 
     // Получить свои бронирования
     @GetMapping("/reservations/mine")
@@ -107,6 +116,4 @@ public class UserController {
     ) {
         return ResponseEntity.ok(userService.getOrderPaymentDTO(user, orderId));
     }
-
-
 }

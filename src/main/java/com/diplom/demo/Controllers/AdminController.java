@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -175,26 +176,33 @@ public class AdminController {
     // ===== Управление комнатами =====
     @GetMapping("/rooms")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Room>> getAllRooms() {
-        return ResponseEntity.ok(adminService.getAllRooms());
+    public ResponseEntity<List<RoomDTO>> getAllRooms() {
+        List<RoomDTO> rooms = adminService.getAllRooms()
+                .stream()
+                .map(room -> convertToDTO(room))
+                .toList();
+        return ResponseEntity.ok(rooms);
     }
 
     @GetMapping("/rooms/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Room> getRoomById(@PathVariable Long id) {
-        return ResponseEntity.ok(adminService.getRoomById(id));
+    public ResponseEntity<RoomDTO> getRoomById(@PathVariable Long id) {
+        Room room = adminService.getRoomById(id);
+        return ResponseEntity.ok(convertToDTO(room));
     }
 
     @PostMapping("/rooms")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Room> addRoom(@RequestBody RoomDTO roomDTO) {
-        return ResponseEntity.ok(adminService.addRoom(roomDTO));
+    public ResponseEntity<RoomDTO> addRoom(@RequestBody RoomDTO roomDTO) {
+        Room createdRoom = adminService.addRoom(roomDTO);
+        return ResponseEntity.ok(convertToDTO(createdRoom));
     }
 
     @PutMapping("/rooms/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Room> updateRoom(@PathVariable Long id, @RequestBody RoomDTO roomDTO) {
-        return ResponseEntity.ok(adminService.updateRoom(id, roomDTO));
+    public ResponseEntity<RoomDTO> updateRoom(@PathVariable Long id, @RequestBody RoomDTO roomDTO) {
+        Room updatedRoom = adminService.updateRoom(id, roomDTO);
+        return ResponseEntity.ok(convertToDTO(updatedRoom));
     }
 
     @DeleteMapping("/rooms/{id}")
@@ -207,27 +215,21 @@ public class AdminController {
     // ===== Управление столами =====
     @GetMapping("/tables")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TableEntity>> getAllTables() {
-        return ResponseEntity.ok(adminService.getAllTables());
+    public ResponseEntity<List<TableAdminDTO>> getAllTables() {
+        List<TableEntity> tables = adminService.getAllTables();
+        List<TableAdminDTO> dtos = tables.stream()
+                .map(this::convertToTableDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/tables/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TableEntity> getTableById(@PathVariable Long id) {
-        return ResponseEntity.ok(adminService.getTableById(id));
+    public ResponseEntity<TableAdminDTO> getTableById(@PathVariable Long id) {
+        TableEntity table = adminService.getTableById(id);
+        return ResponseEntity.ok(convertToTableDTO(table));
     }
 
-    @PostMapping("/tables")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TableEntity> addTable(@RequestBody TableAdminDTO tableDTO) {
-        return ResponseEntity.ok(adminService.addTable(tableDTO));
-    }
-
-    @PutMapping("/tables/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TableEntity> updateTable(@PathVariable Long id, @RequestBody TableAdminDTO tableDTO) {
-        return ResponseEntity.ok(adminService.updateTable(id, tableDTO));
-    }
 
     @DeleteMapping("/tables/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -239,7 +241,81 @@ public class AdminController {
     // Получить все столы в комнате
     @GetMapping("/rooms/{roomId}/tables")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TableEntity>> getTablesByRoomId(@PathVariable Long roomId) {
-        return ResponseEntity.ok(adminService.getTablesByRoomId(roomId));
+    public ResponseEntity<List<TableAdminDTO>> getTablesByRoomId(@PathVariable Long roomId) {
+        List<TableEntity> tables = adminService.getTablesByRoomId(roomId);
+        List<TableAdminDTO> dtos = tables.stream()
+                .map(this::convertToTableDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    @PostMapping(value = "/tables", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TableAdminDTO> addTableMultipart(
+            @RequestParam("label") String label,
+            @RequestParam("description") String description,
+            @RequestParam("seats") int seats,
+            @RequestParam("roomId") Long roomId,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) throws IOException {
+        TableEntity saved = adminService.addTable(label, description, seats, roomId, image);
+        return ResponseEntity.ok(convertToTableDTO(saved));
+    }
+
+    @PutMapping(value = "/tables/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TableAdminDTO> updateTableMultipart(
+            @PathVariable Long id,
+            @RequestParam("label") String label,
+            @RequestParam("description") String description,
+            @RequestParam("seats") int seats,
+            @RequestParam("roomId") Long roomId,
+            @RequestParam(value = "image", required = false) MultipartFile image
+    ) throws IOException {
+        TableEntity updated = adminService.updateTable(id, label, description, seats, roomId, image);
+        return ResponseEntity.ok(convertToTableDTO(updated));
+    }
+
+    //Сотрудники
+    @GetMapping("/users")
+    public List<UserDTO> getAllUsers() {
+        return adminService.getAllUsers();
+    }
+
+    @PostMapping("/users")
+    public ResponseEntity<Void> addUser(@RequestBody UserDTO userDTO) {
+        adminService.createUser(userDTO);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<Void> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+        adminService.updateUser(id, userDTO);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        adminService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+
+    private TableAdminDTO convertToTableDTO(TableEntity table) {
+        TableAdminDTO dto = new TableAdminDTO();
+        dto.setId(table.getId());
+        dto.setLabel(table.getLabel());
+        dto.setDescription(table.getDescription());
+        dto.setSeats(table.getSeats());
+        dto.setImageUrl(table.getStringUrl()); // предполагается, что StringUrl - это URL картинки
+        dto.setRoomId(table.getRoom() != null ? table.getRoom().getId() : null);
+        return dto;
+    }
+
+    private RoomDTO convertToDTO(Room room) {
+        RoomDTO dto = new RoomDTO();
+        dto.setId(room.getId());
+        dto.setName(room.getName());
+        dto.setRestaurantId(room.getRestaurant() != null ? room.getRestaurant().getId() : null);
+        return dto;
     }
 }
